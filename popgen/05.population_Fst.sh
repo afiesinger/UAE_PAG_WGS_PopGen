@@ -3,6 +3,7 @@
 # Script to calculate population-wide Weir & Cockerham's Fst
 
 # ------------------- POPULATION-WIDE Fst ---------------------- #
+# vcftools v0.1.16
 
 indir="/path/to/VCF"
 outdir="/path/to/output"
