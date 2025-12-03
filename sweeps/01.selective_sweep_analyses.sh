@@ -298,6 +298,7 @@ awk 'BEGIN{OFS="\t"} NR==1{$(NF+1)="snpid"} NR>1{$(NF+1)=$12"_"$NF} 1' tmp.tsv >
 rm tmp.tsv
 
 # ----------------------- SNPEFF ------------------------- #
+# SnpEff v5.3
 
 genome_dir="/path/to/reference_genome"
 cd $genome_dir
@@ -363,6 +364,7 @@ mv *.txt *.html $outdir
 cd $outdir
 
 # --- SNPSift to filter variants --- #
+# SnpSift v5.3
 
 workdir="/path/to/snpEff"
 
