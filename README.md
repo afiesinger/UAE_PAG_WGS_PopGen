@@ -7,5 +7,5 @@ This repository contains all code and VCF files to generate the data presented i
 Fiesinger, A.: **"Genomic signatures of adaptation in coral holobionts from the extreme thermal environment of the Persian/Arabian Gulf"**, submitted Dec 2025
 
 
-Raw sequencing files are available at NCBI under BioProject: XXX
+Raw sequencing files are available at NCBI under BioProject PRJNA1191362 (https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1191362)
 
