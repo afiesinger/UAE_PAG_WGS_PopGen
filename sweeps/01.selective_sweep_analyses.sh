@@ -3,7 +3,7 @@
 # Script for calculating selective sweeps (Fst & XP-EHH using vcftools & selscan)
 # Annotate SNPs in candidate regions of selection with SnpEff
 
-# -------------------------- Fst VCFTOOLS ------------------------ #
+# -------------------------- Fst ------------------------ #
 vcftools v0.1.16
 
 indir="/path/to/sweeps"
