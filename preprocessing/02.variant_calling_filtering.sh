@@ -89,6 +89,7 @@ grep -vc '^#' PHAR.OUT.SNPs_GATK.vcf
 # vcftools v 0.1.16
 # filter VCF file specifically for each downstream application using vcftools
 
+# # # --- POPGEN --- # # #
 cd /path/to/vcf_file
 
 vcftools --vcf PHAR.OUT.SNPs_GATK.vcf --max-missing 0.8 --minQ 30 --min-alleles 2 --max-alleles 2 --hwe 0.001 --maf 0.05 --recode --recode-INFO-all --out PHAR.OUT.SNPs_GATK_filt_hwe_maf_bi.vcf
@@ -115,6 +116,71 @@ vcftools --vcf PHAR.OUT.SNPs_GATK_filt_hwe_maf_bi_indv.recode.vcf --exclude-posi
 # how many SNPs remain?
 grep -vc '^#' PHAR.OUT.SNPs_GATK_filt_hwe_maf_bi_indv.ld_pruned.recode.vcf
 # 663,850
+
+# # # --- SELECTIVE SWEEPS --- # # #
+
+vcftools --vcf PHAR.OUT.SNPs_GATK.vcf --max-missing 0.8 --minQ 30 --min-alleles 2 --max-alleles 2 --maf 0.002 --recode --recode-INFO-all --out ./NEW_FILTERS_VCF/SWEEPS/PHAR.OUT.SNPs_filt_sweeps
+mv ./NEW_FILTERS_VCF/SWEEPS/PHAR.OUT.SNPs_filt_sweeps.recode.vcf ./NEW_FILTERS_VCF/SWEEPS/PHAR.OUT.SNPs_filt_sweeps.vcf
+
+cd SWEEPS
+
+vcftools --vcf PHAR.OUT.SNPs_filt_sweeps.vcf --missing-indv
+sort -k5 -n out.imiss > out.sort # look at highest missingness
+
+# list samples with more than 30% missingness
+awk 'NR>1 && $5 > 0.2 {print $1}' out.imiss > remove.inds
+
+# add clones to the remove.inds file #
+
+# nano remove.inds
+# UAE_SA_Phar_31
+# UAE_SI_Phar_38
+
+# remove them from the vcf file
+vcftools --vcf PHAR.OUT.SNPs_filt_sweeps.vcf --remove remove.inds --recode --recode-INFO-all --out PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES
+mv PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.recode.vcf PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.vcf
+
+grep -vc '^#' PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.vcf 
+# 5,185,934
+
+# LD pruning
+vcftools --vcf PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.vcf --geno-r2 --ld-window-bp 200 --min-r2 0.2 --out ld_out
+
+# sites to remove
+awk 'NR>1 {print $1"\t"$3}' ld_out.geno.ld | sort | uniq > snps_to_exclude.txt
+
+vcftools --vcf PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.vcf  --exclude-positions snps_to_exclude.txt --recode --recode-INFO-all --out PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.ld_pruned
+
+grep -vc '^#' PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.ld_pruned.recode.vcf 
+# 2,878,739
+
+bgzip -k PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.ld_pruned.recode.vcf 
+tabix PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.ld_pruned.recode.vcf.gz
+
+# make popfiles for SWEEP ANALYSES 
+
+bcftools query -l PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.ld_pruned.recode.vcf.gz  | awk 'BEGIN{OFS="\t"; print "SampleID","Population"} {split($0,a,"_"); print $0, a[2]}' > SWEEP.popfile.noclones
+tail -n +2 SWEEP.popfile.noclones > SWEEP.popfile.noclones.noheader
+
+# PAG
+awk '$2=="SA" || $2=="SY" {print $1}' SWEEP.popfile.noclones.noheader > PAG.noclones.inds
+
+# GO
+awk '$2=="SI" {print $1}' SWEEP.popfile.noclones.noheader > GO.noclones.inds
+
+# SA
+awk '$2=="SA" {print $1}' SWEEP.popfile.noclones.noheader > SA.noclones.inds
+
+# SY
+awk '$2=="SY" {print $1}' SWEEP.popfile.noclones.noheader > SY.noclones.inds
+
+# SI
+awk '$2=="SI" {print $1}' SWEEP.popfile.noclones.noheader > SI.noclones.inds
+
+# make separate VCF files for PAG & GO
+vcftools --vcf PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.ld_pruned.recode.vcf --keep PAG.noclones.inds --recode --recode-INFO-all --out PAG.SWEEP.noclones
+vcftools --vcf PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.ld_pruned.recode.vcf --keep GO.noclones.inds --recode --recode-INFO-all --out GO.SWEEP.noclones
+
 
 # ---------------- MAKE POPULATION FILES FOR DOWNSTREAM INCLUDING THE CLONE MATES ---------------- #
 # bcftools v1.20
