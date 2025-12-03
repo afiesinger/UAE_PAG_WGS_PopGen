@@ -8,6 +8,7 @@ indir="/path/to/vcf/"
 grep -vc '^#' PHAR.OUT.SNPs_GATK_filt_hwe_maf_bi_indv.recode.vcf
 # number of total SNPs: 1,140,169
 
+# PAG vs GO
 /home/fiesingera/tools/PopLDdecay/bin/PopLDdecay -InVCF $indir/POPGEN/PHAR.OUT.SNPs_GATK_filt_hwe_maf_bi_indv.recode.vcf.gz \
     -OutStat PAG_PopLDdecay_out -SubPop $indir/PAG.all.inds
 
