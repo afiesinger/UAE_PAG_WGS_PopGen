@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Script for calculating selective sweeps (Fst & XP-EHH using vcftools & selscan)
+# Annotate SNPs in candidate regions of selection with SnpEff
+
 # -------------------------- Fst VCFTOOLS ------------------------ #
 vcftools v0.1.16
 
@@ -293,146 +296,6 @@ awk 'BEGIN{OFS="\t"} NR==1{$(NF+1)="BPcumBP"} NR>1{$(NF+1)=$NF*1000000} 1'  top.
 awk 'BEGIN{OFS="\t"} NR==1{$(NF+1)="snpid"} NR>1{$(NF+1)=$12"_"$NF} 1' tmp.tsv > top.1pc.normxpehh.PAG.outliers.header.chr.SNPids
 
 rm tmp.tsv
-
-###############
-# nSL & iHH12 #
-###############
-
-# LOOKING FOR SOFT SWEEP RATHER THAN A HARD SWEEP WITH HAPLOTYPE STATISTICS:
-
-# # nSL # #
-while read scaffold; do
-    # extract scaffold-specific VCFs 
-    grep -w "^$scaffold" PAG.dom.recode.vcf > tmp.PAG.vcf
-    grep -w "^$scaffold" GO.dom.recode.vcf > tmp.GO.vcf
-
-    # extract corresponding entries from the map file
-    grep -w "^$scaffold" PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.ld_pruned.clean.phased.imptd.REFORMAT.map > tmp.map
-
-    # Run nSL on PAG
-    /path/to/selscan --nsl \
-        --vcf tmp.PAG.vcf \
-        --map tmp.map \
-        --out $outdir_nsl/${scaffold}_PAG \
-        --trunc-ok
-
-    # Run nSL on GO
-    /path/to/selscan --nsl \
-        --vcf tmp.GO.vcf \
-        --map tmp.map \
-        --out $outdir_nsl/${scaffold}_GO \
-        --trunc-ok
-done < PHAR.OUT_scaffold.list
-
-rm tmp*
-
-# normalize data to account for genome-wide differences in haplotype length between PAG & GO #
-cd nSL_OUT/
-
-nsl_pag=$(cat PHAR.OUT_scaffold.list | sed -E 's/$/_PAG.nsl.out/' | while read f; do [ -f "$f" ] && echo "$f"; done | tr '\n' ' ')
-/home/fiesingera/tools/selscan/src/norm --nsl --files $nsl_pag
-
-# concatenate all normalized files for outlier calculation
-cat *_PAG.nsl.out.100bins.norm > ALL_PAG.nsl.out.norm
-
-# add a header
-(echo -e "id\tpos\tdaf\tsl1\tsl0\tunsl\tnormnsl\tbin"; cat ALL_PAG.nsl.out.norm) > ALL_PAG.nsl.out.norm.header
-
-nsl_go=$(cat PHAR.OUT_scaffold.list | sed -E 's/$/_GO.nsl.out/' | while read f; do [ -f "$f" ] && echo "$f"; done | tr '\n' ' ')
-/path/to/selscan/src/norm --nsl --files $nsl_go
-
-# concatenate all normalized files for outlier calculation
-cat *_GO.nsl.out.100bins.norm > ALL_GO.nsl.out.norm
-
-# add a header
-(echo -e "id\tpos\tdaf\tsl1\tsl0\tunsl\tnormnsl\tbin"; cat ALL_GO.nsl.out.norm) > ALL_GO.nsl.out.norm.header
-
-mkdir ind_files
-mv *.log *.out *.100bins.norm ind_files/
-
-# # iHH12 # #
-while read scaffold; do
-    # extract scaffold-specific VCFs 
-    grep -w "^$scaffold" PAG.dom.recode.vcf > tmp.PAG.vcf
-    grep -w "^$scaffold" GO.dom.recode.vcf > tmp.GO.vcf
-
-    # extract corresponding entries from the map file
-    grep -w "^$scaffold" PHAR.OUT.SNPs_filt_sweeps_indv.NOCLONES.ld_pruned.clean.phased.imptd.REFORMAT.map > tmp.map
-    
-    # Run iHH12 on PAG
-    /path/to/selscan --ihh12 \
-        --vcf tmp.PAG.vcf \
-        --map tmp.map \
-        --out $outdir_ihh12/${scaffold}_PAG \
-        --trunc-ok
-
-    # Run iHH12 on GO
-    /path/to/selscan --ihh12 \
-        --vcf tmp.GO.vcf \
-        --map tmp.map \
-        --out $outdir_ihh12/${scaffold}_GO \
-        --trunc-ok
-done < PHAR.OUT_scaffold.list
-
-rm tmp*
-
-cd iHH12_OUT/
-
-ihh12_pag=$(cat PHAR.OUT_scaffold.list | sed -E 's/$/_PAG.ihh12.out/' | while read f; do [ -f "$f" ] && echo "$f"; done | tr '\n' ' ')
-/home/fiesingera/tools/selscan/src/norm --ihh12 --files $ihh12_pag
-
-# concatenate normalized files
-
-# pick one file to extract the header
-header_file="1_PAG.ihh12.out.norm"
-output_file="ALL_PAG.ihh12.out.norm"
-
-# save header
-head -n 1 $header_file > header.tmp
-
-# remove header lines from all files in-place
-for f in *_PAG.ihh12.out.norm; do
-    sed -i '1d' $f
-done
-
-# concatenate all headerless files
-cat *_PAG.ihh12.out.norm > data.tmp
-
-# add the single header back
-cat header.tmp data.tmp > $output_file
-
-# clean up
-rm -f header.tmp data.tmp
-
-ihh12_go=$(cat PHAR.OUT_scaffold.list | sed -E 's/$/_GO.ihh12.out/' | while read f; do [ -f "$f" ] && echo "$f"; done | tr '\n' ' ')
-/path/to/selscan/src/norm --ihh12 --files $ihh12_go
-
-# concatenate normalized files
-
-# pick one file to extract the header
-header_file="1_GO.ihh12.out.norm"
-output_file="ALL_GO.ihh12.out.norm"
-
-# save header
-head -n 1 $header_file > header.tmp
-
-# remove header lines from all files in-place
-for f in *_GO.ihh12.out.norm; do
-    sed -i '1d' $f
-done
-
-# concatenate all headerless files
-cat *_GO.ihh12.out.norm > data.tmp
-
-# add the single header back
-cat header.tmp data.tmp > $output_file
-
-# clean up
-rm -f header.tmp data.tmp
-
-mkdir ind_files
-mv *.log *.out* ind_files/
-mv ind_files/ALL* .
 
 # ----------------------- SNPEFF ------------------------- #
 
