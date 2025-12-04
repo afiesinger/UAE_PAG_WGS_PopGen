@@ -18,7 +18,7 @@ pi_data <- read.table("pixy_pi.txt", header = TRUE)
 pi_data <- pi_data[!is.na(pi_data$avg_pi), ]
 
 # Load scaffold lengths
-scaffold_lengths <- read.table("PAG_UKon_Phar_Genome_scaffold_lengths.txt.header", header = TRUE)
+scaffold_lengths <- read.table("sweeps/PAG_UKon_Phar_1.1_contig_len.txt", header = TRUE)
 scaffold_lengths$scaffold_num <- as.numeric(gsub("Phar_scaff_", "", scaffold_lengths$CHR))
 scaffold_lengths <- scaffold_lengths[order(scaffold_lengths$scaffold_num), ]
 scaffold_lengths$cumlen <- cumsum(scaffold_lengths$LENGTH)
@@ -281,7 +281,7 @@ ggplot(nsl_go, aes(x = normnsl)) +
   theme_bw()
 ggsave("nSL_histo_GO_1pc.png", dpi = 300)
 
-scaffold_lengths <- read.table("PAG_UKon_Phar_Genome_scaffold_lengths.txt.header", header = TRUE)
+scaffold_lengths <- read.table("sweeps/PAG_UKon_Phar_1.1_contig_len.txt", header = TRUE)
 scaffold_lengths$scaffold_num <- as.numeric(gsub("Phar_scaff_", "", scaffold_lengths$CHR))
 scaffold_lengths <- scaffold_lengths[order(scaffold_lengths$scaffold_num), ]
 
@@ -605,7 +605,7 @@ library(ggplot2)
 pag <- read.table("PAG_mod.frq", header=TRUE, stringsAsFactors=FALSE)
 go <- read.table("GO_mod.frq", header=TRUE, stringsAsFactors=FALSE)
 
-scaffold_lengths <- read.table("PAG_UKon_Phar_Genome_scaffold_lengths.txt.header", header = TRUE)
+scaffold_lengths <- read.table("sweeps/PAG_UKon_Phar_1.1_contig_len.txt", header = TRUE)
 scaffold_lengths$scaffold_num <- as.numeric(gsub("Phar_scaff_", "", scaffold_lengths$CHR))
 scaffold_lengths <- scaffold_lengths[order(scaffold_lengths$scaffold_num), ]
 
