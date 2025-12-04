@@ -20,7 +20,7 @@ fst$scaffold_num <- as.numeric(gsub("Phar_scaff_", "", fst$CHR))
 fst <- fst[order(fst$scaffold_num, fst$POS), ]
 fst$CHR <- factor(fst$CHR, levels = unique(fst$CHR))
 
-scaffold_lengths <- read.table("PAG_UKon_Phar_Genome_scaffold_lengths.txt.header", header = TRUE)
+scaffold_lengths <- read.table("sweeps/PAG_UKon_Phar_1.1_contig_len.txt", header = TRUE)
 scaffold_lengths$scaffold_num <- as.numeric(gsub("Phar_scaff_", "", scaffold_lengths$CHR))
 scaffold_lengths <- scaffold_lengths[order(scaffold_lengths$scaffold_num), ]
 
@@ -60,7 +60,7 @@ xpehh$CHR <- sub("^(Phar_scaff_\\d+)_\\d+$", "\\1", xpehh$id)
 xpehh$POS <- as.numeric(xpehh$pos)
 xpehh$normxpehh <- as.numeric(xpehh$normxpehh)
 
-scaffold_lengths <- fread("PAG_UKon_Phar_Genome_scaffold_lengths.txt.header", header = TRUE)
+scaffold_lengths <- fread("sweeps/PAG_UKon_Phar_1.1_contig_len.txt", header = TRUE)
 scaffold_lengths$scaffold_num <- as.numeric(gsub("Phar_scaff_", "", scaffold_lengths$CHR))
 scaffold_lengths <- scaffold_lengths[order(scaffold_lengths$scaffold_num), ]
 
